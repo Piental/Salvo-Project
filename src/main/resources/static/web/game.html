@@ -1,0 +1,35 @@
+<!DOCTYPE HTML>
+<html lang="en">
+<link rel="stylesheet" href="styles/game.css">
+
+<head>
+    <title>Game View</title>
+
+</head>
+
+<body>
+    <div id="app" class="backgroundColor">
+        <div class="header">
+            <div id=player></div>
+            <div>vs</div>
+            <div id="opponent"></div>
+        </div>
+        <div id="ships">
+        </div>
+        <div class="flexContainer">
+            <div class="table">
+                <table id="playerTable">
+                </table>
+                <button class="button" onclick="sendShips()" id="ships">Confirm your ships</button>
+            </div>
+
+            <div class="table">
+                <table id="opponentTable">
+                </table>
+            </div>
+        </div c>
+    </div>
+    <script src="game.js"></script>
+</body>
+
+</html>

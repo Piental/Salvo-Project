@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <title>Salvo!</title>
+</head>
+
+<body>
+  <h1 id="welcome"></h1>
+  <button class="button" onclick="newGame()" id="newGame">new Game</button>
+  <div id="login">
+    <h2>Login</h2>
+    <label>Name: <input type="text" id="username" /></label>
+    <label>Password: <input type="password" id="password" /></label>
+    <button class="button" onclick="logIn()" id="login">Log in</button>
+  </div>
+  <div id="register">
+    <h2>Registration</h2>
+    <label>Name: <input type="text" id="newUsername" /></label>
+    <label>Password: <input type="password" id="newPassword" /></label>
+    <button class="button" onclick="register()" id="register">Register</button>
+  </div>
+  <div id="logout"><button class="button" onclick="logout()" id="logout">Logout</button></div>
+  <ol id="list">
+    List of games
+  </ol>
+
+  <div class="table">
+    <table id="leaderboard"></table>
+  </div>
+  <script src="https://code.jquery.com/jquery-2.2.0.js"></script>
+  <script src="games.js"></script>
+</body>
+
+</html>
