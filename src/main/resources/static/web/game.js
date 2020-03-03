@@ -50,27 +50,32 @@ var playersShips = [
   {
     type: "Submarine",
     locations: [],
-    length: 3
+    length: 3,
+    position: "horizontal"
   },
   {
     type: "Battleship",
     locations: [],
-    length: 4
+    length: 4,
+    position: "horizontal"
   },
   {
     type: "Destroyer",
     locations: [],
-    length: 4
+    length: 4,
+    position: "horizontal"
   },
   {
     type: "Patrol Boat",
     locations: [],
-    length: 2
+    length: 2,
+    position: "horizontal"
   },
   {
     type: "Cruiser",
     locations: [],
-    length: 3
+    length: 3,
+    position: "horizontal"
   }
 ];
 
@@ -118,6 +123,9 @@ function createShips() {
     this.ship.setAttribute("class", "ship");
     this.ship.setAttribute("draggable", "true");
     this.ship.setAttribute("src", "../images/" + ship.type + ".png");
+    this.ship.addEventListener("dblclick", function(e) {
+      turnShip(e.target.getAttribute("data-type"));
+    });
     document.getElementById("ships").appendChild(this.ship);
   });
 
@@ -155,54 +163,164 @@ function createShips() {
         e.preventDefault();
       });
       cell.addEventListener("drop", function(e) {
+        //------placing locations to playersShips based on ship length property
         let shipName = draggedItem.getAttribute("data-type");
+        let previousLocations = [];
         for (z = 0; z < playersShips.length; z++) {
-          if (shipName == "Patrol Boat" && playersShips[z].type == shipName) {
-            let locations = [
-              grid[y].getAttribute("id"),
-              grid[y + 1].getAttribute("id")
-            ];
-            //adding locations to the main scope
-            playersShips[z].locations = locations;
-          }
-          if (shipName == "Cruiser" && playersShips[z].type == shipName) {
-            let locations = [
-              grid[y].getAttribute("id"),
-              grid[y + 1].getAttribute("id"),
-              grid[y + 2].getAttribute("id")
-            ];
-            playersShips[z].locations = locations;
-          }
-          if (shipName == "Submarine" && playersShips[z].type == shipName) {
-            let locations = [
-              grid[y].getAttribute("id"),
-              grid[y + 1].getAttribute("id"),
-              grid[y + 2].getAttribute("id")
-            ];
-            playersShips[z].locations = locations;
-          }
-          if (shipName == "Destroyer" && playersShips[z].type == shipName) {
-            let locations = [
-              grid[y].getAttribute("id"),
-              grid[y + 1].getAttribute("id"),
-              grid[y + 2].getAttribute("id"),
-              grid[y + 3].getAttribute("id")
-            ];
-            playersShips[z].locations = locations;
-          }
-          if (shipName == "Battleship" && playersShips[z].type == shipName) {
-            let locations = [
-              grid[y].getAttribute("id"),
-              grid[y + 1].getAttribute("id"),
-              grid[y + 2].getAttribute("id"),
-              grid[y + 3].getAttribute("id")
-            ];
+          //when the ship is found
+          if (shipName == playersShips[z].type) {
+            let position = playersShips[z].position;
+            let locations = [];
+            //function put as many ids of the cells as the ship is long
+            for (t = 0; t < playersShips[z].length; t++) {
+              if (position == "horizontal") {
+                let location = grid[y + t].getAttribute("id");
+                locations.push(location);
+              } else if (position == "vertical") {
+                let firstLocation = grid[y].getAttribute("id");
+                let number = firstLocation.slice(1);
+                console.log(number);
+                let letter = firstLocation[0];
+                let letterInCharCode = letter.charCodeAt();
+                newLocation =
+                  String.fromCharCode(letterInCharCode + t) + number;
+                locations.push(newLocation);
+              }
+            }
+            //adding the array of loctions to the playersShips
+            previousLocations = playersShips[z].locations;
             playersShips[z].locations = locations;
           }
         }
-        draggedItem.style.position = "absolute";
-        this.append(draggedItem);
+        if (
+          checkShipsPositions(shipName) == true ||
+          checkOverlapping(shipName) == true
+        ) {
+          console.log("rule broken");
+          // if the rules are broken, the the previous locations should be remained to the dragged ship
+          for (z = 0; z < playersShips.length; z++) {
+            //when the ship is found
+            if (shipName == playersShips[z].type) {
+              playersShips[z].locations = previousLocations;
+            }
+          }
+        } else {
+          draggedItem.style.position = "absolute";
+          this.append(draggedItem);
+        }
       });
+    }
+  }
+}
+
+function checkShipsPositions(shipName) {
+  let duplicate = false;
+  for (i = 0; i < playersShips.length; i++) {
+    if (playersShips[i].type == shipName) {
+      for (p = 0; p < playersShips[i].locations.length; p++) {
+        let checkedLocation = playersShips[i].locations[p];
+        for (y = 0; y < playersShips.length; y++) {
+          if (playersShips[y].type !== shipName) {
+            if (playersShips[y].locations.includes(checkedLocation)) {
+              duplicate = true;
+            }
+          }
+        }
+      }
+    }
+  }
+  if (duplicate == true) {
+    return true;
+  } else {
+    return false;
+  }
+}
+
+function checkOverlapping(shipName) {
+  for (i = 0; i < playersShips.length; i++) {
+    var shipLength = playersShips[i].length;
+    if (playersShips[i].type == shipName) {
+      var firstLocationNumber = playersShips[i].locations[0].slice(1);
+      var lastLocationLetter = playersShips[i].locations[shipLength - 1][0];
+      if (
+        (playersShips[i].locations.length + parseInt(firstLocationNumber) >
+          11 &&
+          playersShips[i].position == "horizontal") ||
+        (lastLocationLetter.charCodeAt() > 74 &&
+          playersShips[i].position == "vertical")
+      ) {
+        return true;
+      } else {
+        return false;
+      }
+    }
+  }
+}
+
+function turnShip(shipName) {
+  for (i = 0; i < playersShips.length; i++) {
+    let ship = playersShips[i];
+    if (ship.type == shipName && ship.locations.length !== 0) {
+      let firstCell = ship.locations[0];
+      let previousLocations = ship.locations;
+      let previousPosition = ship.position;
+      let number = firstCell[1];
+      let letter = firstCell[0];
+      let newLocations = [firstCell];
+      if (ship.position == "horizontal") {
+        ship.position = "vertical";
+        let letterInCharCode = letter.charCodeAt();
+        let letterFromCharCode = String.fromCharCode(letterInCharCode);
+        for (j = 1; j < ship.length; j++) {
+          newLocation = String.fromCharCode(letterInCharCode + j) + number;
+          newLocations.push(newLocation);
+        }
+      } else {
+        playersShips[i].position = "horizontal";
+        for (j = 1; j < ship.length; j++) {
+          newLocation = letter + (parseInt(number) + j);
+          newLocations.push(newLocation);
+        }
+      }
+      ship.locations = newLocations;
+
+      if (
+        checkShipsPositions(shipName) == true ||
+        checkOverlapping(shipName) == true
+      ) {
+        console.log("rule broken");
+        // if the rules are broken, the the previous locations should be remained to the dragged ship
+        for (z = 0; z < playersShips.length; z++) {
+          //when the ship is found
+          if (shipName == playersShips[z].type) {
+            playersShips[z].locations = previousLocations;
+            playersShips[z].position = previousPosition;
+          }
+        }
+      } else {
+        console.log(ship);
+        const image = document.querySelectorAll(
+          "[data-type='" + ship.type + "']"
+        );
+        // adding styles for the ships basing on the position and ship type
+        if (ship.position == "vertical") {
+          image[0].style.transform = "rotate(90deg)";
+          if (ship.length == 4) {
+            image[0].style.marginLeft = "-55px";
+            image[0].style.marginTop = "38px";
+          } else if (ship.length == 3) {
+            image[0].style.marginLeft = "-38px";
+            image[0].style.marginTop = "20px";
+          } else if (ship.length == 2) {
+            image[0].style.marginLeft = "-18px";
+            image[0].style.marginTop = "5px";
+          }
+        } else {
+          image[0].style.transform = "rotate(0deg)";
+          image[0].style.marginLeft = "0px";
+          image[0].style.marginTop = "-15px";
+        }
+      }
     }
   }
 }
@@ -256,6 +374,11 @@ function sendShips() {
   if (shipsPlaced == true) {
     let data = playersShips;
     console.log(data);
+    // switching off draggable feature
+    var ships = document.getElementsByClassName("ship");
+    Array.prototype.forEach.call(ships, ship => {
+      ship.setAttribute("draggable", "false");
+    });
     fetch("http://localhost:8080/api/games/players/" + gp + "/ships", {
       headers: {
         "Content-Type": "application/json"
@@ -267,7 +390,8 @@ function sendShips() {
       .then(response => {
         console.log(response);
         if (response.status == 201) {
-          window.location.reload();
+          // window.location.reload();
+          alert("Your ships are successfully placed!");
         }
         return response.json();
       })
