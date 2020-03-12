@@ -28,7 +28,7 @@ public class GamePlayer {
     Set<Ship> ships;
 
     @OneToMany(mappedBy="gamePlayer", fetch=FetchType.EAGER)
-    Set<Salvo> salvoes;
+    Set<Salvo> salvos;
 
     public GamePlayer() { }
 
@@ -63,13 +63,27 @@ public class GamePlayer {
     public Set<Ship> getShips() {
         return ships;
     }
-    public Set<Salvo> getSalvoes() {return salvoes;}
+    public Set<Salvo> getSalvos() {return salvos;}
 
     public void addShip(Ship ship) {
         ship.setGamePlayer(this);
         ships.add(ship);
     }
 
+    public void addSalvo(Salvo salvo) {
+        salvo.setGamePlayer(this);
+        salvos.add(salvo);
+    }
 
+    public Integer getLastTurn(){
+        if(!this.getSalvos().isEmpty()){
+            return this.getSalvos().stream()
+                    .map(salvo1 ->salvo1.getTurn() )
+                    .max((x,y)->Integer.compare(x,y))
+                    .get();
+        }else {
+            return 0;
+        }
+    }
 
 }

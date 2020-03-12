@@ -3,7 +3,7 @@ const queryString = window.location.search;
 const urlParams = new URLSearchParams(queryString);
 const gp = urlParams.get("gp");
 
-async function fetchData() {
+function fetchData() {
   fetch("http://localhost:8080/api/game_view/" + gp)
     .then(function(data) {
       return data.json();
@@ -16,14 +16,15 @@ async function fetchData() {
         createTable("playerTable");
         createTable("opponentTable");
         createShips();
+        placeSalvo();
+
         if (games.ships.length > 0) {
           markShips();
         }
         checkPlayer();
-        if (games.ships.length > 0) {
-          // will be done later
-          // markPlayerSalvoes();
-          // markOpponentSalvoes();
+        if (games.salvos.length > 0) {
+          markPlayerSalvoes();
+          markOpponentSalvoes();
         }
       } else {
         alert(myData.error);
@@ -44,7 +45,9 @@ var playerId = "";
 var opponent = "";
 var opponentId = "";
 var shipsPlaced = false;
-var playerSalvoes = [];
+var salvosPlaced = false;
+var playerSalvos = [];
+var currentSalvos = [];
 var opponentSalvos = [];
 var playersShips = [
   {
@@ -95,7 +98,7 @@ function checkPlayer() {
   document.getElementById("opponent").innerHTML = opponent;
 }
 
-function createTable(table) {
+async function createTable(table) {
   for (i = 0; i < rows.length; i++) {
     var newRow = document.createElement("tr");
     for (y = 0; y < columns.length; y++) {
@@ -107,6 +110,8 @@ function createTable(table) {
         newCell.setAttribute("id", rows[i] + columns[y]);
         if (table == "playerTable") {
           newCell.setAttribute("class", "event");
+        } else if (table == "opponentTable") {
+          newCell.setAttribute("class", "salvo");
         }
         newRow.insertCell;
       }
@@ -342,22 +347,98 @@ function markShips() {
   }
 }
 
+function placeSalvo() {
+  var counter = 0;
+  var opponentTable = document
+    .getElementById("opponentTable")
+    .getElementsByTagName("td");
+  for (let i = 0; i < opponentTable.length; i++) {
+    let cell = opponentTable[i];
+    cell.addEventListener("click", function() {
+      let type = cell.getAttribute("class");
+      let location = cell.getAttribute("id");
+      if (type == "salvo") {
+        counter++;
+        if (counter > 5) {
+          alert("you can only fire 5 salvos at one turn");
+          counter--;
+        } else {
+          cell.setAttribute("class", "shoot");
+          currentSalvos.push(location);
+        }
+      } else if (type == "shoot") {
+        counter--;
+        for (j = 0; j < currentSalvos.length; j++) {
+          let salvo = currentSalvos[j];
+          if (salvo == location) {
+            currentSalvos.splice(j, 1);
+          }
+        }
+        cell.setAttribute("class", "salvo");
+      }
+
+      console.log(currentSalvos);
+      console.log(counter);
+    });
+  }
+}
+
 function markPlayerSalvoes() {
   var opponentTable = document
     .getElementById("opponentTable")
     .getElementsByTagName("td");
 
-  if (games.salvos[0][0].player_id == playerId) {
-    var playerSalvos = games.salvos[0];
-  } else {
-    var playerSalvos = games.salvos[1];
+  let array1 = games.salvos[0];
+  let array2 = games.salvos[1];
+
+  if (games.salvos.length == 2) {
+    if (array1[0].player_id == playerId) {
+      playerSalvos = array1;
+    } else {
+      playerSalvos = array2;
+    }
   }
-  for (i = 0; i < playerSalvos.length; i++) {
-    for (y = 0; y < playerSalvos[i].locations.length; y++) {
-      for (z = 0; z < opponentTable.length; z++) {
-        if (playerSalvos[i].locations[y] == opponentTable[z].id) {
-          opponentTable[z].setAttribute("class", "shoot");
-          opponentTable[z].innerHTML = playerSalvos[i].turn;
+  if (playerSalvos.length > 0) {
+    for (i = 0; i < playerSalvos.length; i++) {
+      for (y = 0; y < playerSalvos[i].locations.length; y++) {
+        for (z = 0; z < opponentTable.length; z++) {
+          if (playerSalvos[i].locations[y] == opponentTable[z].id) {
+            opponentTable[z].setAttribute("class", "shoot");
+            opponentTable[z].innerHTML = playerSalvos[i].turn;
+          }
+        }
+      }
+    }
+  }
+}
+
+function markOpponentSalvoes() {
+  var playerTable = document
+    .getElementById("playerTable")
+    .getElementsByTagName("td");
+
+  let array1 = games.salvos[0];
+  let array2 = games.salvos[1];
+
+  if (games.salvos.length == 2) {
+    if (array1[0].player_id !== playerId) {
+      opponentSalvos = array1;
+    } else {
+      opponentSalvos = array2;
+    }
+  }
+  if (opponentSalvos.length > 0) {
+    for (i = 0; i < opponentSalvos.length; i++) {
+      for (y = 0; y < opponentSalvos[i].locations.length; y++) {
+        for (z = 0; z < playerTable.length; z++) {
+          if (opponentSalvos[i].locations[y] == playerTable[z].id) {
+            playerTable[z].innerHTML = opponentSalvos[i].turn;
+            if (playerTable[z].className == "marked") {
+              playerTable[z].setAttribute("class", "hit");
+            } else {
+              playerTable[z].setAttribute("class", "shoot");
+            }
+          }
         }
       }
     }
@@ -390,7 +471,6 @@ function sendShips() {
       .then(response => {
         console.log(response);
         if (response.status == 201) {
-          // window.location.reload();
           alert("Your ships are successfully placed!");
         }
         return response.json();
@@ -406,28 +486,36 @@ function sendShips() {
   }
 }
 
-function markOpponentSalvoes() {
-  var playerTable = document
-    .getElementById("playerTable")
-    .getElementsByTagName("td");
-
-  if (games.salvos[0][0].player_id !== playerId) {
-    var opponentSalvos = games.salvos[0];
-  } else {
-    var opponentSalvos = games.salvos[1];
-  }
-  for (i = 0; i < opponentSalvos.length; i++) {
-    for (y = 0; y < opponentSalvos[i].locations.length; y++) {
-      for (z = 0; z < playerTable.length; z++) {
-        if (opponentSalvos[i].locations[y] == playerTable[z].id) {
-          playerTable[z].innerHTML = opponentSalvos[i].turn;
-          if (playerTable[z].className == "marked") {
-            playerTable[z].setAttribute("class", "hit");
-          } else {
-            playerTable[z].setAttribute("class", "shoot");
-          }
+function sendSalvos() {
+  if (currentSalvos.length == 5) {
+    let data = {
+      locations: currentSalvos
+    };
+    console.log(data);
+    // switching off moving feature
+    fetch("http://localhost:8080/api/games/players/" + gp + "/salvos", {
+      headers: {
+        "Content-Type": "application/json"
+      },
+      credentials: "include",
+      method: "POST",
+      body: JSON.stringify(data)
+    })
+      .then(response => {
+        console.log(response);
+        if (response.status == 201) {
+          window.location.reload();
         }
-      }
-    }
+        return response.json();
+      })
+      .then(json => {
+        console.log(json);
+        currentSalvos = [];
+      })
+      .catch(error => {
+        console.log("Request failure: ", error);
+      });
+  } else {
+    alert("Please place five salvos on the grid!");
   }
 }

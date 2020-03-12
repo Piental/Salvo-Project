@@ -3,11 +3,11 @@ package com.codeoftheweb.salvo;
 import org.hibernate.annotations.GenericGenerator;
 
 import javax.persistence.*;
-import java.util.ArrayList;
 import java.util.List;
 
 @Entity
 public class Salvo {
+
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO, generator = "native")
     @GenericGenerator(name = "native", strategy = "native")
@@ -15,7 +15,7 @@ public class Salvo {
 
     @ElementCollection
     @Column(name="location")
-    private List<String> locations = new ArrayList<>();
+    private List<String> locations;
     private Integer turn;
 
     @ManyToOne(fetch = FetchType.EAGER)
@@ -23,6 +23,8 @@ public class Salvo {
     private GamePlayer gamePlayer;
 
     public Salvo(){}
+
+
     //constructor
     public Salvo(Integer turn, GamePlayer gamePlayer, List locations) {
         this.turn = turn;
@@ -38,6 +40,7 @@ public class Salvo {
     public Integer getTurn() {
         return turn;
     }
+
 
 
 
@@ -58,4 +61,7 @@ public class Salvo {
         this.gamePlayer = gamePlayer;
     }
 
+    public void setTurn(Integer turn) {
+        this.turn = turn;
+    }
 }

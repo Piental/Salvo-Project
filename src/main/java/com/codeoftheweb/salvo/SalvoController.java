@@ -30,6 +30,9 @@ public class SalvoController {
     @Autowired
     private ShipRepository shipRepository;
 
+    @Autowired
+    private SalvoRepository salvoRepository;
+
     @CrossOrigin(origins = "http://127.0.0.1:5500")
     @RequestMapping("/games")
 
@@ -65,7 +68,6 @@ public class SalvoController {
             Game currentGame = gameRepository.getOne(gameId);
             if (currentGame != null) {
                 Integer numberOfGP = currentGame.getGamePlayers().size();
-                System.out.println(numberOfGP);
                 if (numberOfGP < 2 && !currentGame.getGamePlayers().contains(player)) {
                     GamePlayer newGP = new GamePlayer(currentGame, player);
                     gamePlayerRepository.save(newGP);
@@ -102,6 +104,23 @@ public class SalvoController {
             }
             return new ResponseEntity<>(makeMap("success", "ships have been placed"), HttpStatus.CREATED);
         }
+    }
+
+    @RequestMapping(path = "/games/players/{gamePlayerId}/salvos", method = RequestMethod.POST)
+    public ResponseEntity<Map<String, Object>> addSalvos(@PathVariable Long gamePlayerId, @RequestBody Salvo salvo, Authentication authentication)
+    {   GamePlayer currentGamePlayer = gamePlayerRepository.getOne(gamePlayerId);
+        Player currentPlayer = playerRepository.findByUserName((authentication.getName()));
+        if (isGuest(authentication) || currentGamePlayer == null || currentGamePlayer.getPlayer().getId() != currentPlayer.getId()) {
+            return new ResponseEntity<>(makeMap("error", "action is not allowed"), HttpStatus.UNAUTHORIZED);
+        } else if (salvo.getLocations().size() != 5)
+        {return new ResponseEntity<>(makeMap("error", "you have to place 5 salvos in one turn"), HttpStatus.FORBIDDEN);}
+        else {
+            salvo.setTurn(currentGamePlayer.getLastTurn() + 1);
+            currentGamePlayer.addSalvo(salvo);
+            salvoRepository.save(salvo);
+            return new ResponseEntity<>(makeMap("success", "salvo turn added"), HttpStatus.CREATED);
+        }
+
     }
 
 
@@ -164,9 +183,11 @@ public class SalvoController {
                         .map(ship -> getShipInfo(ship))
                         .collect(Collectors.toList()));
                 gameViewInfo.put("salvos", currentGamePlayer.getGame().getGamePlayers().stream()
-                        .map(gamePlayer -> gamePlayer.getSalvoes().stream()
-                                .map(salvo -> getSalvo(salvo))
+                        .map(gamePlayer -> gamePlayer.getSalvos().stream()
+                                .map(salvo -> getSalvo(salvo, currentGamePlayer))
                                 .collect(Collectors.toSet())).collect(Collectors.toList()));
+//                gameViewInfo.put("hits", getHits(currentGamePlayer));
+//                gameViewInfo.put("opponentSunkShips", getOpponentSunkShips(getHits(currentGamePlayer), currentGamePlayer));
             } else {
                 gameViewInfo.put("error", "Not allowed to view opponents game");
                 gameViewInfo.put("status", HttpStatus.FORBIDDEN);
@@ -191,6 +212,79 @@ public class SalvoController {
     public Player currentUserName(Authentication authentication) {
         return playerRepository.findByUserName(authentication.getName());
     }
+
+    public List<String> getAllHits(GamePlayer gamePlayer, Salvo salvo) {
+        GamePlayer opponent = getOpponent(gamePlayer);
+        long player_id = salvo.getGamePlayer().getPlayer().getId();
+        if (opponent != null) {
+            int turn = salvo.getTurn();
+            List<String> salvoLocations = new ArrayList<>();
+            for (Salvo salvo1 : salvo.getGamePlayer().getSalvos()) {
+                if (salvo1.getTurn() <= turn) {
+                    getTurnHits(gamePlayer, salvo1).forEach(hit -> salvoLocations.add(hit));
+                }}
+            return salvoLocations;
+            //!!!!!! ask mentor why it doesn't work
+//            List<String> salvoLocations = gamePlayer.getSalvos().stream().filter(thisTurn -> (salvo.getTurn()) <= turn)
+//                    .map(location -> salvo.getLocations())
+//                    .flatMap(s -> s.stream()).collect(Collectors.toList());
+//
+//            List<String> opponentShipLocations = opponent.getShips().stream()
+//                    .map(ship -> ship.getLocations())
+//                    .flatMap(locations -> locations.stream())
+//                    .collect(Collectors.toList());
+//
+//            return salvoLocations.stream()
+//                    .filter(location -> opponentShipLocations.contains(location))
+//                    .collect(Collectors.toList());
+        } else {
+            return null;
+        }
+    }
+
+    public List<String> getTurnHits(GamePlayer gamePlayer, Salvo salvo) {
+        GamePlayer opponent = getOpponent(salvo.getGamePlayer());
+        if (opponent != null) {
+            List<String> salvoLocations = salvo.getLocations();
+            List<String> opponentShipLocations = opponent.getShips().stream()
+                    .map(ship -> ship.getLocations())
+                    .flatMap(locations -> locations.stream())
+                    .collect(Collectors.toList());
+            return salvoLocations.stream()
+                    .filter(location -> opponentShipLocations.contains(location))
+                    .collect(Collectors.toList());
+        } else {
+            return null;
+        }
+    }
+    public GamePlayer getOpponent(GamePlayer gamePlayer) {
+        return gamePlayer.getGame().getGamePlayers().stream()
+                .filter(gamePlayer1 -> gamePlayer1.getId() != gamePlayer.getId()).findAny().orElse(null);
+
+    }
+
+    public List<String> getSunkShips(List<String> allHits, GamePlayer gamePlayer, Salvo salvo) {
+        List<String> sunkShips = new ArrayList<>();
+        GamePlayer opponent = getOpponent(salvo.getGamePlayer());
+        if (opponent != null) {
+            if (allHits.size() != 0) {
+                for (Ship ship : opponent.getShips()) {
+                    int counter = 0;
+                    for (String hit : allHits) {
+                        if (ship.getLocations().contains(hit)) {
+                            counter++;
+                        }
+                    }
+                    if (ship.getLocations().size() == counter) {
+                        sunkShips.add(ship.getType());
+                    }
+                }
+            }
+        }
+        return sunkShips;
+    }
+
+
 
     public List<Object> getGames() {
         List<Object> games = new ArrayList<>();
@@ -253,13 +347,17 @@ public class SalvoController {
         return shipTypeAndLocations;
     }
 
-    public Map<String, Object> getSalvo(Salvo salvo) {
+    public Map<String, Object> getSalvo(Salvo salvo, GamePlayer gamePlayer) {
         Map<String, Object> salvoTurnAndLocations = new LinkedHashMap<>();
         salvoTurnAndLocations.put("player_id", salvo.getGamePlayer().getPlayer().getId());
         salvoTurnAndLocations.put("turn", salvo.getTurn());
         salvoTurnAndLocations.put("locations", salvo.getLocations());
+        salvoTurnAndLocations.put("turnHits", getTurnHits(gamePlayer, salvo));
+        salvoTurnAndLocations.put("allHits", getAllHits(gamePlayer, salvo));
+        salvoTurnAndLocations.put("sunkShips", getSunkShips(getAllHits(gamePlayer, salvo), gamePlayer, salvo));
         return salvoTurnAndLocations;
     }
+
 
     private boolean isGuest(Authentication authentication) {
         return authentication == null || authentication instanceof AnonymousAuthenticationToken;
