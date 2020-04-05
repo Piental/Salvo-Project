@@ -85,5 +85,10 @@ public class GamePlayer {
             return 0;
         }
     }
-
+    public Salvo getLastSalvo() {
+        if(!this.getSalvos().isEmpty()){
+            return this.getSalvos().stream().filter(salvo -> salvo.getTurn() == this.getLastTurn()).findFirst().orElse(null);
+        }
+        return null;
+    }
 }

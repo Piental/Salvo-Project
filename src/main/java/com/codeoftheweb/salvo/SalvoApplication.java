@@ -89,7 +89,7 @@ public class SalvoApplication {
             locations1.add("H2");
             locations1.add("H3");
 
-            Ship ship1 = new Ship("Destroyer", gamePlayer1, locations1);
+            Ship ship1 = new Ship("Destroyer", gamePlayer1, locations1, "horizontal");
             shipRepository.save(ship1);
 
             List<String> locations2 = new ArrayList<>();
@@ -97,7 +97,7 @@ public class SalvoApplication {
             locations2.add("D2");
             locations2.add("D3");
 
-            Ship ship2 = new Ship("Cruiser", gamePlayer2, locations2);
+            Ship ship2 = new Ship("Cruiser", gamePlayer2, locations2, "horizontal");
             shipRepository.save(ship2);
 
             List<String> locations3 = new ArrayList<>();
@@ -106,7 +106,7 @@ public class SalvoApplication {
             locations3.add("G5");
             locations3.add("H5");
 
-            Ship ship3 = new Ship("Battleship", gamePlayer1, locations3);
+            Ship ship3 = new Ship("Battleship", gamePlayer1, locations3, "vertical");
             shipRepository.save(ship3);
 
             List<String> locations4 = new ArrayList<>();
@@ -114,7 +114,7 @@ public class SalvoApplication {
             locations4.add("F4");
 
 
-            Ship ship4 = new Ship("Patrol Boat", gamePlayer3, locations4);
+            Ship ship4 = new Ship("Patrol Boat", gamePlayer3, locations4, "vertical");
             shipRepository.save(ship4);
 
             List<String> locations5 = new ArrayList<>();
@@ -123,7 +123,7 @@ public class SalvoApplication {
             locations5.add("D7");
 
 
-            Ship ship5 = new Ship("Submarine", gamePlayer1, locations5);
+            Ship ship5 = new Ship("Submarine", gamePlayer1, locations5, "horizontal");
             shipRepository.save(ship5);
             long id = 1;
 
@@ -132,7 +132,7 @@ public class SalvoApplication {
             locations16.add("H1");
             locations16.add("I1");
 
-            Ship ship6 = new Ship("Patrol Boat", gamePlayer4, locations16);
+            Ship ship6 = new Ship("Patrol Boat", gamePlayer4, locations16, "horizontal");
             shipRepository.save(ship6);
 
             // Adding Salvoes
@@ -270,10 +270,12 @@ class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 .antMatchers("/api/games").permitAll()
                 .antMatchers("/api/players").permitAll()
                 .antMatchers("/web/games.js").permitAll()
-                .antMatchers("/web/games.css").permitAll()
+                .antMatchers("/web/styles/games.css").permitAll()
                 .antMatchers("/rest/**").permitAll()
                 .antMatchers("/api/login").permitAll()
                 .antMatchers("/api/leaderboard").permitAll()
+                .antMatchers("/web/styles/game.css").permitAll()
+                .antMatchers("/images/**").permitAll()
                 .anyRequest().authenticated()
                 .and()
                 .formLogin()

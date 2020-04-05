@@ -89,7 +89,7 @@ public class SalvoController {
         Player currentPlayer = playerRepository.findByUserName((authentication.getName()));
         if (isGuest(authentication) || currentGamePlayer == null || currentGamePlayer.getPlayer().getId() != currentPlayer.getId()) {
             return new ResponseEntity<>(makeMap("error", "action is not allowed"), HttpStatus.UNAUTHORIZED);
-        } else if (currentGamePlayer.getShips().size() > 5)
+        } else if (currentGamePlayer.getShips().size() >= 5)
         {return new ResponseEntity<>(makeMap("error", "the ships are already placed"), HttpStatus.FORBIDDEN);}
         else {
             int counter = 0;
@@ -172,6 +172,7 @@ public class SalvoController {
             GamePlayer currentGamePlayer = gamePlayerRepository.getOne(gameId);
             if (player.getId() == currentGamePlayer.getPlayer().getId()) {
                 gameViewInfo.put("status", HttpStatus.ACCEPTED);
+                gameViewInfo.put("gameStatus", getGameStatus(currentGamePlayer));
                 gameViewInfo.put("player", currentUserName(authentication));
                 gameViewInfo.put("created", currentGamePlayer.getGame().getDate());
                 gameViewInfo.put("id", currentGamePlayer.getId());
@@ -344,18 +345,19 @@ public class SalvoController {
         Map<String, Object> shipTypeAndLocations = new LinkedHashMap<>();
         shipTypeAndLocations.put("type", ship.getType());
         shipTypeAndLocations.put("locations", ship.getLocations());
+        shipTypeAndLocations.put("position", ship.getPosition());
         return shipTypeAndLocations;
     }
 
     public Map<String, Object> getSalvo(Salvo salvo, GamePlayer gamePlayer) {
-        Map<String, Object> salvoTurnAndLocations = new LinkedHashMap<>();
-        salvoTurnAndLocations.put("player_id", salvo.getGamePlayer().getPlayer().getId());
-        salvoTurnAndLocations.put("turn", salvo.getTurn());
-        salvoTurnAndLocations.put("locations", salvo.getLocations());
-        salvoTurnAndLocations.put("turnHits", getTurnHits(gamePlayer, salvo));
-        salvoTurnAndLocations.put("allHits", getAllHits(gamePlayer, salvo));
-        salvoTurnAndLocations.put("sunkShips", getSunkShips(getAllHits(gamePlayer, salvo), gamePlayer, salvo));
-        return salvoTurnAndLocations;
+        Map<String, Object> salvoDetails = new LinkedHashMap<>();
+        salvoDetails.put("player_id", salvo.getGamePlayer().getPlayer().getId());
+        salvoDetails.put("turn", salvo.getTurn());
+        salvoDetails.put("locations", salvo.getLocations());
+        salvoDetails.put("turnHits", getTurnHits(gamePlayer, salvo));
+        salvoDetails.put("allHits", getAllHits(gamePlayer, salvo));
+        salvoDetails.put("sunkShips", getSunkShips(getAllHits(gamePlayer, salvo), gamePlayer, salvo));
+        return salvoDetails;
     }
 
 
@@ -364,6 +366,68 @@ public class SalvoController {
     }
 
 
+    public String getGameStatus(GamePlayer gamePlayer) {
+        //checking if there is an opponent
+        if (gamePlayer.getGame().getGamePlayers().size() == 2) {
+            GamePlayer opponent = getOpponent(gamePlayer);
+            if (gamePlayer.getShips().isEmpty())
+            {return "place your ships";}
+            if (opponent.getShips().isEmpty()) {
+                return "opponent is still placing the ships...";
+            }
+            else {
+                //defining player 1 & 2
+                GamePlayer player1 = new GamePlayer();
+                GamePlayer player2 = new GamePlayer();
+                if (gamePlayer.getId() < opponent.getId()) {
+                    player1 = gamePlayer;
+                    player2 = opponent;
+                }
+                else {
+                    player1 = opponent;
+                    player2 = gamePlayer;
+                }
+                if(player1.getSalvos().size() == 0) {
+                    return player1.getPlayer().getUserName() +"'s turn";}
+                else if (player2.getSalvos().size() == 0) {
+                    return player2.getPlayer().getUserName() +"'s turn";
+                }
+                else if (player1.getSalvos().size() == player2.getSalvos().size()) {
+                    if (getAllHits(player1, player1.getLastSalvo()).size() == 16 && getAllHits(player2, player2.getLastSalvo()).size() != 16) {
+                        if (player1.getPlayer().getScore(player1.getGame()) == null) {
+                            scoreRepository.save(new Score(1.0, player1.getGame(), player1.getPlayer()));
+                            scoreRepository.save(new Score(0.0, player2.getGame(), player2.getPlayer()));
+                        }
+                        return player1.getPlayer().getUserName() + " wins!";
+                    }
+                    else if (getAllHits(player2, player2.getLastSalvo()).size() == 16 && getAllHits(player1, player1.getLastSalvo()).size() != 16) {
+                        if (player2.getPlayer().getScore(player2.getGame()) == null) {
+                            scoreRepository.save(new Score(1.0, player2.getGame(), player2.getPlayer()));
+                            scoreRepository.save(new Score(0.0, player1.getGame(), player1.getPlayer()));
+                        }
+                        return player2.getPlayer().getUserName() + " wins!";
+                    }
+                    else if (getAllHits(player2, player2.getLastSalvo()).size() == 16 && getAllHits(player1, player1.getLastSalvo()).size() == 16) {
+                    if (player1.getPlayer().getScore(player1.getGame()) == null && player2.getPlayer().getScore(player2.getGame()) == null) {
+                        scoreRepository.save(new Score(0.5, player1.getGame(), player1.getPlayer()));
+                        scoreRepository.save(new Score(0.5, player2.getGame(), player2.getPlayer()));
+                        }
+                        return "Draw!";
+                    }
+                    else {
+                        return player1.getPlayer().getUserName() +"'s turn";}
+                }
+                else if (player1.getSalvos().size() > player2.getSalvos().size()) {
+                    return player2.getPlayer().getUserName() +"'s turn";}
+                else {
+                    return player1.getPlayer().getUserName() +"'s turn";
+                }
+            }
+        }
+        else {
+            return "waiting for opponent...";
+        }
+    }
 
 
         //Works!!!!!

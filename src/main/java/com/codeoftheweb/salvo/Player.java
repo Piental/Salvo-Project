@@ -69,4 +69,8 @@ public class Player{
         this.password = password;
     }
 
+    public Score getScore(Game game){
+        return scores.stream().filter( score -> score.getGame().equals(game)).findFirst().orElse(null);
+    }
+
 }

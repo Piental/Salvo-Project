@@ -1,33 +1,65 @@
-fetch("http://localhost:8080/api/games")
-  .then(function (data) {
-    return data.json();
-  })
-  .then(function (myData) {
-    console.log(myData);
-    games = myData.games;
-    user = myData.user;
-    displayDivs();
-    createList();
-  });
+games = "";
 
-fetch("http://localhost:8080/api/leaderboard")
-  .then(function (data) {
-    return data.json();
-  })
-  .then(function (myData) {
-    leaderboard = myData;
-    console.log(leaderboard);
-    createTable();
-  });
+createGames();
+createLeaderboard();
+setInterval(function () {
+  createGames();
+  createLeaderboard();
+}, 2500);
+
+function createGames() {
+  fetch("http://localhost:8080/api/games")
+    .then(function (data) {
+      return data.json();
+    })
+    .then(function (myData) {
+      console.log(myData);
+      if (myData.games.length !== games.length) {
+        games = myData.games;
+        user = myData.user;
+        displayDivs();
+        createList();
+      }
+    });
+}
+
+
+
+function createLeaderboard() {
+  fetch("http://localhost:8080/api/leaderboard")
+    .then(function (data) {
+      return data.json();
+    })
+    .then(function (myData) {
+      leaderboard = myData;
+      createTable();
+    });
+}
 
 var gamePlayer = "";
 
+
 function createList() {
-  document.getElementById("list").innerHTML = "";
+  document.getElementById("gamesList").innerHTML = "";
   for (i = 0; i < games.length; i++) {
     var playersNumber = games[i].gamePlayers.length;
-    var newRow = document.createElement("li");
     var a = document.createElement("a");
+    var newGame = document.createElement("div");
+    newGame.setAttribute("class", "card");
+    var gameNo = i + 1;
+    var gameHeader = document.createElement("div");
+    gameHeader.setAttribute("class", "header");
+    var headerTitle = document.createElement("h2");
+    headerTitle.innerHTML = "Game " + gameNo;
+    gameHeader.appendChild(headerTitle);
+
+    var headline1 = document.createElement("h4");
+    var headline2 = document.createElement("h4");
+
+    var versus = document.createElement("IMG");
+    versus.setAttribute("src", "../../images/vs.png");
+    versus.setAttribute("class", "versus");
+
     var player1 = games[i].gamePlayers[0].player;
     if (playersNumber == 2) {
       var player2 = games[i].gamePlayers[1].player;
@@ -43,65 +75,71 @@ function createList() {
     ) {
       gamePlayer = games[i].gamePlayers[1].id;
       a.href = "http://localhost:8080/web/game.html?gp=" + gamePlayer;
+    } else {
+      newGame.setAttribute("class", "card unlinked")
     }
     // if there are already two players in the game
+
+    newGame.appendChild(gameHeader);
     if (playersNumber == 2) {
-      a.innerHTML =
-        games[i].created +
-        " game created " +
-        games[i].gamePlayers[0].player.userName +
-        " vs " +
+      headline1.innerHTML =
+        games[i].gamePlayers[0].player.userName;
+      headline2.innerHTML =
         games[i].gamePlayers[1].player.userName;
-      newRow.appendChild(a);
+
+      newGame.appendChild(headline1);
+      newGame.appendChild(versus);
+      newGame.appendChild(headline2);
     }
     // if there is only one player in the game
     else {
-      a.innerHTML =
-        games[i].created +
-        " game created " +
-        games[i].gamePlayers[0].player.userName +
-        " is waiting for opponent! ";
-      newRow.appendChild(a);
+      headline1.innerHTML = games[i].gamePlayers[0].player.userName;
+      headline2.innerHTML = " is waiting for opponent!";
+      headline2.style.color = "red";
+      newGame.appendChild(headline1);
+      newGame.appendChild(headline2);
       // adding button to join game (only if user is logged in and user is not already in the game)
       if (
         user.id !== games[i].gamePlayers[0].player.id &&
         user.userName !== "Guest"
       ) {
-        var button = document.createElement("button");
-        button.innerHTML = "join game";
-        button.setAttribute("data-game-id", games[i].id);
+        newGame.setAttribute("class", "card")
+        newGame.setAttribute("data-game-id", games[i].id);
         console.log(games[i])
-        button.onclick = function (e) {
-          let gameId = button.getAttribute("data-game-id")
-          console.log(gameId)
+        newGame.onclick = function (e) {
+          let gameId = newGame.getAttribute("data-game-id")
           joinGame(gameId);
         }
-        newRow.appendChild(button);
       }
     }
-    document.getElementById("list").appendChild(newRow);
+    a.appendChild(newGame);
+    document.getElementById("gamesList").appendChild(a);
   }
 }
 
 function createTable() {
   // creating head of the table
   var newRow = document.createElement("tr");
+  newRow.insertCell().innerHTML = "Pos";
   newRow.insertCell().innerHTML = "Player";
   newRow.insertCell().innerHTML = "Wins";
   newRow.insertCell().innerHTML = "Loses";
   newRow.insertCell().innerHTML = "Ties";
   newRow.insertCell().innerHTML = "Total points";
+  document.getElementById("leaderboard").innerHTML = "";
   document.getElementById("leaderboard").appendChild(newRow);
 
   //sorting the array
-
+  console.log(leaderboard);
   leaderboard.sort(function (a, b) {
     return b.totalPts - a.totalPts;
   });
   //adding data to the table
 
   for (i = 0; i < leaderboard.length; i++) {
+    let position = i + 1;
     var newRow = document.createElement("tr");
+    newRow.insertCell().innerHTML = position + ".";
     newRow.insertCell().innerHTML = leaderboard[i].name;
     newRow.insertCell().innerHTML = leaderboard[i].wins;
     newRow.insertCell().innerHTML = leaderboard[i].loses;
@@ -245,12 +283,14 @@ function register() {
 function displayDivs() {
   var login = document.getElementById("login");
   var logout = document.getElementById("logout");
+  var console = document.getElementById("console");
   var register = document.getElementById("register");
   var welcome = document.getElementById("welcome");
   var newGame = document.getElementById("newGame");
   if (user.userName == "Guest") {
     login.style.display = "block";
     register.style.display = "block";
+    console.style.display = "none";
     logout.style.display = "none";
     welcome.style.display = "none";
     newGame.style.display = "none";
@@ -259,7 +299,6 @@ function displayDivs() {
     register.style.display = "none";
     logout.style.display = "block";
     welcome.innerHTML = "Hello " + user.userName + "!";
-    welcome.style.display = "block";
     newGame.style.display = "block";
   }
 }

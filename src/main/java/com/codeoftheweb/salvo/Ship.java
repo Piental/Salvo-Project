@@ -13,6 +13,7 @@ public class Ship {
     @GenericGenerator(name = "native", strategy = "native")
     private long id;
     private String type;
+    private String position;
 
     @ElementCollection
     @Column(name="location")
@@ -23,10 +24,13 @@ public class Ship {
     private GamePlayer gamePlayer;
 
     public Ship(){}
+
+
     //constructor
-    public Ship(String type, GamePlayer gamePlayer, List locations) {
+    public Ship(String type, GamePlayer gamePlayer, List locations, String position) {
         this.type = type;
         this.locations = locations;
+        this.position = position;
         this.gamePlayer = gamePlayer;
     }
 
@@ -37,6 +41,10 @@ public class Ship {
 
     public String getType() {
         return type;
+    }
+
+    public String getPosition() {
+        return position;
     }
 
     public void setType(String type) {

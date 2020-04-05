@@ -11,24 +11,40 @@
     <div id="app" class="backgroundColor">
         <div class="header">
             <div id=player></div>
-            <div>vs</div>
+            <div><img id="versus" src="../images/vs.png" alt="versus"></div>
             <div id="opponent"></div>
         </div>
-        <div id="ships">
+        <div id="statusBox">
+            <div id="status"></div>
         </div>
-        <div class="flexContainer">
-            <div class="table">
-                <table id="playerTable">
-                </table>
-                <button class="button" onclick="sendShips()" id="ships">Confirm your ships</button>
-                <button class="button" onclick="sendSalvos()" id="ships">Fire!</button>
+        <fieldset>
+            <legend>Your ships</legend>
+            <div id="ships">
             </div>
+        </fieldset>
 
-            <div class="table">
-                <table id="opponentTable">
-                </table>
+    </div>
+    <div class="flexContainer">
+        <div class="table">
+            <table id="playerTable">
+            </table>
+            <div id="console">
+                <button class="inactive" onclick="sendShips()" id="shipsButton">confirm your ships</button>
+                <button class="inactive" onclick="sendSalvos()" id="salvosButton">fire!</button>
+                <button class="active" onclick="location.href='http://localhost:8080/web/games.html';" id=" goBack">go
+                    back</button>
             </div>
-        </div c>
+        </div>
+        <div class="table">
+            <table id="opponentTable">
+            </table>
+        </div>
+    </div>
+    <div class="gameDetails">
+        <h2>Game details</h2>
+        <ul id="detailsList">
+        </ul>
+    </div>
     </div>
     <script src="game.js"></script>
 </body>
