@@ -2,7 +2,7 @@ body {
   width: auto;
   font-family: Arial, Helvetica, sans-serif;
   background-image: url(../../images/water.jpg);
-  background-position: center;
+  background-position: top;
   background-repeat: no-repeat;
   background-size: cover;
   color: #f1f1f1;
@@ -39,9 +39,9 @@ body {
   color: rgb(7, 5, 5);
   background-color: #f1f1f1;
   width: fit-content;
-  box-shadow: 0 8px 16px 0 rgba(0, 0, 0, 0.2),
-    0 12px 40px 0 rgba(0, 0, 0, 0.19);
-  transition: opacity 0.2s, font-size 0.2s, color 0.2s, background-color 0.2s, box-shadow 0.2s;
+  box-shadow: 0 8px 16px 0 rgba(0, 0, 0, 0.2), 0 12px 40px 0 rgba(0, 0, 0, 0.19);
+  transition: opacity 0.2s, font-size 0.2s, color 0.2s, background-color 0.2s,
+    box-shadow 0.2s;
 }
 
 #statusBox {
@@ -57,45 +57,88 @@ body {
     0 6px 20px 0 rgba(213, 233, 233, 0.767);
 }
 
-
 .flexContainer {
   display: flex;
   flex-wrap: wrap;
-  justify-content: space-between;
-  border-bottom: 1px solid #f1f1f1;
+  justify-content: space-around;
 }
 
-.table {
-  margin: 50px;
-  width: 40%;
+#opponentTable {
+  cursor: url(../../images/cursor.png), auto;
+}
+
+.salvoActive {
+  background-color: rgba(0, 0, 0, 0.3);
+  transition: background-color 0.1s, box-shadow 0.1s;
+}
+
+.salvo {
+  background-color: rgba(0, 0, 0, 0.3);
+}
+
+.event {
+  background-color: rgba(0, 0, 0, 0.3);
+}
+
+.salvoActive:hover {
+  background-color: rgb(159, 212, 214);
+  box-shadow: 0 4px 8px 0 rgba(213, 233, 233, 0.2),
+    0 6px 20px 0 rgba(213, 233, 233, 0.767);
+}
+
+.mark {
+  background-color: rgba(0, 0, 0, 0.3);
+  transition: box-shadow 0.1s;
+}
+
+.mark:hover {
+  box-shadow: 0 4px 8px 0 rgba(213, 233, 233, 0.2),
+    0 6px 20px 0 rgba(213, 233, 233, 0.767);
 }
 
 #ships {
   margin-top: 20px;
 }
 
-
 td {
   height: 30px;
   width: 30px;
-  border: 1px solid rgb(7, 5, 5);
+  padding: 10px;
 }
 
-.marked {
-  background-color: rgb(0, 255, 34);
+.first {
+  background-color: none;
+  border: none;
+  text-align: left;
+  vertical-align: middle;
+  font-weight: 700;
+  font-size: 20px;
+  color: #fff;
 }
 
 .shoot {
-  background-color: firebrick;
+  background-color: rgba(0, 0, 0, 0.3);
+  background-image: url(../../images/pngfuel.com.png);
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: cover;
 }
 
 .mark {
-  background-color: firebrick;
+  background-color: rgba(0, 0, 0, 0.3);
+  background-image: url(../../images/torpedo.png);
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: inherit;
 }
 
-
 .hit {
-  background-color: rgb(126, 61, 101);
+  background-color: rgba(0, 0, 0, 0.3);
+  background-image: url(../../images/explosion.png);
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: cover;
+  z-index: 99;
 }
 
 .header {
@@ -107,8 +150,7 @@ td {
   margin: 15px auto;
   font-size: 50px;
   font-weight: bold;
-  text-shadow: 1px 1px 2px black,
-    0 0 25px rgb(4, 4, 34),
+  text-shadow: 1px 1px 2px black, 0 0 25px rgb(4, 4, 34),
     0 0 5px rgb(17, 17, 56);
 }
 
@@ -129,10 +171,8 @@ td {
 .ship {
   margin-top: -27px;
   margin-left: -15px;
-  transition: margin-left 0.5s,
-    margin-top 0.5s,
-    transform 0.5s,
-    box-shadow 0.2s, background-color 0.2s;
+  transition: margin-left 0.5s, margin-top 0.5s, transform 0.5s, box-shadow 0.2s,
+    background-color 0.2s;
   padding: 15px;
   border-radius: 40px;
 }
@@ -158,7 +198,7 @@ td {
 fieldset {
   border-radius: 5px;
   border: 1px solid #f1f1f1;
-  background-color: rgba(0, 0, 0, .6);
+  background-color: rgba(0, 0, 0, 0.6);
   width: 98%;
   height: 95px;
 }
@@ -173,17 +213,13 @@ legend {
   width: 107px;
 }
 
-.hovered {
-  background-color: blueviolet;
-}
-
 .gameDetails {
   list-style-type: none;
   margin: 15px 2px;
   text-align: center;
   padding: 60px;
   display: block;
-  background-color: rgba(0, 0, 0, .6);
+  background-color: rgba(0, 0, 0, 0.6);
 }
 
 .gameDetails li {
@@ -193,13 +229,17 @@ legend {
 }
 
 #console {
+  margin: 10px auto;
+  display: flex;
+  width: fit-content;
   border-radius: 5px;
   border: 1px solid #f1f1f1;
   padding: 15px;
   display: flex;
   justify-content: center;
   flex-wrap: wrap;
-  background-color: rgba(0, 0, 0, .6);
+  background-color: rgba(0, 0, 0, 0.6);
+  border-bottom: 1px solid #f1f1f1;
 }
 
 button {
@@ -238,16 +278,12 @@ button {
 }
 
 table {
-
-  margin: 50px;
-  width: 40%;
+  margin: 0px;
   table-layout: fixed;
-  background-color: rgba(0, 0, 0, .3);
+  margin: 50px 0px;
 }
 
-
 th {
-
   text-align: left;
   font-weight: 1000;
   font-size: 20px;
@@ -255,7 +291,7 @@ th {
   text-transform: uppercase;
 }
 
-td {
+.gameDetails td {
   height: 30px;
   width: 30px;
   padding: 10px;
@@ -264,5 +300,6 @@ td {
   font-weight: 700;
   font-size: 20px;
   color: #fff;
+
   border-bottom: solid 1px rgba(255, 255, 255, 0.1);
 }

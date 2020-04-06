@@ -37,6 +37,7 @@ async function checkStatus() {
     checkPlayer();
     getPlayersShipsLocations();
     displayStatus();
+    activePlaceSalvo();
     markOpponentSalvoes();
 
     let shipsButton = document.getElementById("shipsButton");
@@ -179,6 +180,7 @@ function createTable(table) {
       newCell = newRow.insertCell(y);
       if (i == 0 || y == 0) {
         newCell.innerHTML = rows[i] + columns[y];
+        newCell.setAttribute("class", "first")
         newRow.insertCell;
       } else {
         newCell.setAttribute("id", rows[i] + columns[y]);
@@ -461,6 +463,20 @@ function markShips() {
   });
 }
 
+function activePlaceSalvo() {
+  var opponentTable = document
+    .getElementById("opponentTable")
+    .getElementsByTagName("td");
+  for (let i = 0; i < opponentTable.length; i++) {
+    let cell = opponentTable[i];
+    if (turnOfPlayer == player && cell.getAttribute("class") == "salvo") {
+      cell.setAttribute("class", "salvoActive")
+    } else if (turnOfPlayer == opponent && cell.getAttribute("class") == "salvoActive" || gameEnd == "true") {
+      cell.setAttribute("class", "salvo")
+    }
+  }
+}
+
 function placeSalvo() {
   let fireButton = document.getElementById("salvosButton");
   var opponentTable = document
@@ -468,7 +484,9 @@ function placeSalvo() {
     .getElementsByTagName("td");
   for (let i = 0; i < opponentTable.length; i++) {
     let cell = opponentTable[i];
-
+    if (turnOfPlayer == player && cell.getAttribute("id") !== null) {
+      cell.setAttribute("class", "salvoActive");
+    }
     cell.addEventListener("click", function () {
       if (gameEnd !== true) {
         if (shipsSent == false) {
@@ -480,7 +498,7 @@ function placeSalvo() {
         } else {
           let type = cell.getAttribute("class");
           let location = cell.getAttribute("id");
-          if (type == "salvo") {
+          if (type == "salvoActive") {
             SalvoCounter++;
             if (SalvoCounter > 5) {
               alert("you can only fire 5 salvos at one turn");
@@ -497,7 +515,7 @@ function placeSalvo() {
                 currentSalvos.splice(j, 1);
               }
             }
-            cell.setAttribute("class", "salvo");
+            cell.setAttribute("class", "salvoActive");
           }
           if (currentSalvos.length == 5) {
             salvosPlaced = true;
@@ -558,7 +576,7 @@ function markPlayerSalvoes() {
             } else {
               opponentTable[z].setAttribute("class", "shoot");
             }
-            opponentTable[z].innerHTML = playerSalvos[i].turn;
+            // opponentTable[z].innerHTML = playerSalvos[i].turn;
           }
         }
       }
@@ -753,6 +771,8 @@ function createDetailsList() {
 function gameOver() {
   if (gameStatus.includes("wins") || gameStatus.includes("Draw")) {
     gameEnd = true;
+    ZZ
+    turnOfPlayer = "";
     if (gameStatus.includes(player)) {
       console.log(player)
     } else if (gameStatus.includes(opponent)) {
