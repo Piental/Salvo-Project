@@ -1,11 +1,18 @@
 body {
   width: auto;
   font-family: Arial, Helvetica, sans-serif;
+  color: #f1f1f1;
   background-image: url(../../images/water.jpg);
   background-position: top;
   background-repeat: no-repeat;
   background-size: cover;
-  color: #f1f1f1;
+}
+
+#app {
+  background-image: url(../../images/water.jpg);
+  background-position: top;
+  background-repeat: no-repeat;
+  background-size: cover;
 }
 
 #player {
@@ -78,6 +85,21 @@ body {
 
 .event {
   background-color: rgba(0, 0, 0, 0.3);
+  box-shadow: none;
+  transition: background-color 0.1s,
+    box-shadow 0.1s;
+}
+
+.hover {
+  background-color: rgb(159, 212, 214);
+  box-shadow: 0 4px 8px 0 rgba(213, 233, 233, 0.2),
+    0 6px 20px 0 rgba(213, 233, 233, 0.767);
+}
+
+.wrong {
+  background-color: rgb(230, 76, 76);
+  box-shadow: 0 4px 8px 0 rgba(213, 233, 233, 0.2),
+    0 6px 20px 0 rgba(213, 233, 233, 0.767);
 }
 
 .salvoActive:hover {

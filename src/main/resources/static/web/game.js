@@ -71,7 +71,6 @@ async function checkStatus() {
         placeSalvo();
         placeSalvoCalled = true;
       }
-
     }
   } else {
     alert(myData.error);
@@ -107,36 +106,37 @@ var playerSalvos = [];
 var currentSalvos = [];
 var opponentSalvos = [];
 var gameEnd = false;
-var playersShips = [{
+var playersShips = [
+  {
     type: "Submarine",
     locations: [],
     length: 3,
-    position: "horizontal"
+    position: "horizontal",
   },
   {
     type: "Battleship",
     locations: [],
     length: 4,
-    position: "horizontal"
+    position: "horizontal",
   },
   {
     type: "Destroyer",
     locations: [],
     length: 4,
-    position: "horizontal"
+    position: "horizontal",
   },
   {
     type: "Patrol Boat",
     locations: [],
     length: 2,
-    position: "horizontal"
+    position: "horizontal",
   },
   {
     type: "Cruiser",
     locations: [],
     length: 3,
-    position: "horizontal"
-  }
+    position: "horizontal",
+  },
 ];
 
 function displayStatus() {
@@ -164,7 +164,6 @@ function checkPlayer() {
         player1Id = opponentId;
         player2 = player;
         player2Id = playerId;
-
       }
     }
   }
@@ -180,7 +179,7 @@ function createTable(table) {
       newCell = newRow.insertCell(y);
       if (i == 0 || y == 0) {
         newCell.innerHTML = rows[i] + columns[y];
-        newCell.setAttribute("class", "first")
+        newCell.setAttribute("class", "first");
         newRow.insertCell;
       } else {
         newCell.setAttribute("id", rows[i] + columns[y]);
@@ -196,8 +195,10 @@ function createTable(table) {
   }
 }
 
+var hoverCells = [];
+
 function createShips() {
-  playersShips.forEach(ship => {
+  playersShips.forEach((ship) => {
     this.ship = document.createElement("img");
     this.ship.setAttribute("data-type", ship.type);
     this.ship.setAttribute("data-length", ship.length);
@@ -205,7 +206,9 @@ function createShips() {
     this.ship.setAttribute("draggable", "true");
     this.ship.setAttribute("src", "../images/" + ship.type + ".png");
     this.ship.addEventListener("dblclick", function (e) {
-      turnShip(e.target.getAttribute("data-type"));
+      if (shipsSent == false) {
+        turnShip(e.target.getAttribute("data-type"));
+      }
     });
     document.getElementById("ships").appendChild(this.ship);
   });
@@ -225,6 +228,12 @@ function createShips() {
       }, 0);
     });
     ship.addEventListener("dragend", function () {
+      for (let y = 0; y < grid.length; y++) {
+        const cell = grid[y];
+        if (hoverCells.includes(cell.id)) {
+          cell.setAttribute("class", "event");
+        }
+      }
       setTimeout(function () {
         draggedItem.style.display = "block";
         draggedItem = null;
@@ -238,9 +247,55 @@ function createShips() {
         e.preventDefault();
       });
       cell.addEventListener("dragenter", function (e) {
-        e.preventDefault();
-      });
-      cell.addEventListener("dragleave", function (e) {
+        for (let y = 0; y < grid.length; y++) {
+          const cell = grid[y];
+          if (hoverCells.includes(cell.id)) {
+            cell.setAttribute("class", "event");
+          }
+        }
+        hoverCells = [];
+        let shipName = draggedItem.getAttribute("data-type");
+        let shipLength = draggedItem.getAttribute("data-length");
+        for (z = 0; z < playersShips.length; z++) {
+          //when the ship is found
+          if (shipName == playersShips[z].type) {
+            let position = playersShips[z].position;
+            //function put as many ids of the cells as the ship is long
+            for (t = 0; t < playersShips[z].length; t++) {
+              if (position == "horizontal") {
+                let location = grid[y + t].getAttribute("id");
+                hoverCells.push(location);
+              } else if (position == "vertical") {
+                let firstLocation = grid[y].getAttribute("id");
+                let number = firstLocation.slice(1);
+                let letter = firstLocation[0];
+                let letterInCharCode = letter.charCodeAt();
+                newLocation =
+                  String.fromCharCode(letterInCharCode + t) + number;
+                hoverCells.push(newLocation);
+              }
+            }
+          }
+        }
+        checkOverlappingHover();
+        checkShipsPositionsHover(shipName);
+        console.log(hoverCells);
+        for (let y = 0; y < grid.length; y++) {
+          const cell = grid[y];
+          if (
+            hoverCells.includes(cell.id) &&
+            shipLength == hoverCells.length &&
+            checkShipsPositionsHover(shipName) == false
+          ) {
+            cell.setAttribute("class", "event hover");
+          } else if (
+            (hoverCells.includes(cell.id) &&
+              shipLength !== hoverCells.length) ||
+            (hoverCells.includes(cell.id) && checkShipsPositionsHover(shipName))
+          ) {
+            cell.setAttribute("class", "event wrong");
+          }
+        }
         e.preventDefault();
       });
       cell.addEventListener("drop", function (e) {
@@ -271,7 +326,7 @@ function createShips() {
             previousLocations = playersShips[z].locations;
             playersShips[z].locations = locations;
           }
-          playersShips.forEach(ship => {
+          playersShips.forEach((ship) => {
             if (ship.locations.length == 0) {
               shipsPlaced = false;
             }
@@ -291,7 +346,7 @@ function createShips() {
           }
         } else {
           shipsPlaced = true;
-          playersShips.forEach(ship => {
+          playersShips.forEach((ship) => {
             if (ship.locations.length == 0) {
               shipsPlaced = false;
             }
@@ -329,6 +384,23 @@ function checkShipsPositions(shipName) {
   }
 }
 
+function checkShipsPositionsHover(shipName) {
+  let duplicate = false;
+  for (y = 0; y < playersShips.length; y++) {
+    if (playersShips[y].type !== shipName) {
+      for (i = 0; i < hoverCells.length; i++)
+        if (playersShips[y].locations.includes(hoverCells[i])) {
+          duplicate = true;
+        }
+    }
+  }
+  if (duplicate == true) {
+    return true;
+  } else {
+    return false;
+  }
+}
+
 function checkOverlapping(shipName) {
   for (i = 0; i < playersShips.length; i++) {
     var shipLength = playersShips[i].length;
@@ -346,6 +418,20 @@ function checkOverlapping(shipName) {
       } else {
         return false;
       }
+    }
+  }
+}
+
+function checkOverlappingHover() {
+  for (i = 0; i < hoverCells.length; i++) {
+    if (
+      hoverCells[i].substr(1) == "10" &&
+      hoverCells[i + 1] !== undefined &&
+      hoverCells[i + 1].substr(1) == "1"
+    ) {
+      hoverCells = hoverCells.slice(0, i + 1);
+    } else if (hoverCells[i][0] == "K") {
+      hoverCells = hoverCells.slice(0, i);
     }
   }
 }
@@ -433,14 +519,14 @@ function markShips() {
   //   }
   // }
   let cells = document.getElementById("playerTable").getElementsByTagName("td");
-  games.ships.forEach(ship => {
+  games.ships.forEach((ship) => {
     let image = document.querySelectorAll("[data-type='" + ship.type + "']");
     let firstLocation = ship.locations[0];
     for (i = 0; i < cells.length; i++) {
       if (cells[i].id == firstLocation) {
         cells[i].appendChild(image[0]);
         image[0].setAttribute("draggable", "false");
-        image[0].setAttribute("class", "shipPlaced")
+        image[0].setAttribute("class", "shipPlaced");
         if (ship.position == "vertical") {
           image[0].style.transform = "rotate(90deg)";
           if (ship.type == "Battleship" || ship.type == "Destroyer") {
@@ -469,10 +555,18 @@ function activePlaceSalvo() {
     .getElementsByTagName("td");
   for (let i = 0; i < opponentTable.length; i++) {
     let cell = opponentTable[i];
-    if (turnOfPlayer == player && cell.getAttribute("class") == "salvo") {
-      cell.setAttribute("class", "salvoActive")
-    } else if (turnOfPlayer == opponent && cell.getAttribute("class") == "salvoActive" || gameEnd == "true") {
-      cell.setAttribute("class", "salvo")
+    if (
+      turnOfPlayer == player &&
+      cell.getAttribute("class") == "salvo" &&
+      gameEnd == false
+    ) {
+      cell.setAttribute("class", "salvoActive");
+    } else if (
+      (turnOfPlayer == opponent &&
+        cell.getAttribute("class") == "salvoActive") ||
+      gameEnd == "true"
+    ) {
+      cell.setAttribute("class", "salvo");
     }
   }
 }
@@ -527,6 +621,8 @@ function placeSalvo() {
           console.log(currentSalvos);
           console.log(SalvoCounter);
         }
+      } else {
+        alert("game over!");
       }
     });
   }
@@ -535,7 +631,7 @@ function placeSalvo() {
 function getPlayersShipsLocations() {
   let ships = games.ships;
   if (ships.length !== 0) {
-    ships.forEach(ship => {
+    ships.forEach((ship) => {
       let shipLocations = ship.locations;
       playersShipsLocations = playersShipsLocations.concat(shipLocations);
     });
@@ -625,7 +721,7 @@ function markOpponentSalvoes() {
 
 function sendShips() {
   shipsPlaced = true;
-  playersShips.forEach(ship => {
+  playersShips.forEach((ship) => {
     if (ship.locations.length == 0) {
       shipsPlaced = false;
     }
@@ -634,18 +730,18 @@ function sendShips() {
     let data = playersShips;
     // switching off draggable feature
     var ships = document.getElementsByClassName("ship");
-    Array.prototype.forEach.call(ships, ship => {
+    Array.prototype.forEach.call(ships, (ship) => {
       ship.setAttribute("draggable", "false");
     });
     fetch("http://localhost:8080/api/games/players/" + gp + "/ships", {
-        headers: {
-          "Content-Type": "application/json"
-        },
-        credentials: "include",
-        method: "POST",
-        body: JSON.stringify(data)
-      })
-      .then(response => {
+      headers: {
+        "Content-Type": "application/json",
+      },
+      credentials: "include",
+      method: "POST",
+      body: JSON.stringify(data),
+    })
+      .then((response) => {
         console.log(response);
         if (response.status == 201) {
           alert("Your ships are successfully placed!");
@@ -655,10 +751,10 @@ function sendShips() {
         }
         return response.json();
       })
-      .then(json => {
+      .then((json) => {
         console.log(json);
       })
-      .catch(error => {
+      .catch((error) => {
         console.log("Request failure: ", error);
       });
   } else if (shipsSent == true) {
@@ -674,23 +770,23 @@ function sendSalvos() {
       alert("Wait for your turn!");
     } else if (currentSalvos.length == 5) {
       let data = {
-        locations: currentSalvos
+        locations: currentSalvos,
       };
       console.log(data);
       // switching off moving feature
       fetch("http://localhost:8080/api/games/players/" + gp + "/salvos", {
-          headers: {
-            "Content-Type": "application/json"
-          },
-          credentials: "include",
-          method: "POST",
-          body: JSON.stringify(data)
-        })
-        .then(response => {
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+        method: "POST",
+        body: JSON.stringify(data),
+      })
+        .then((response) => {
           console.log(response);
           if (response.status == 201) return response.json();
         })
-        .then(json => {
+        .then((json) => {
           console.log(json);
           currentSalvos = [];
           salvosPlaced = false;
@@ -717,11 +813,11 @@ function createDetailsList() {
     if (player1Id < player2Id) {
       allData.sort(function (a, b) {
         return a.player_id - b.player_id;
-      })
+      });
     } else {
       allData.sort(function (a, b) {
         return b.player_id - a.player_id;
-      })
+      });
     }
     allData.sort(function (a, b) {
       return a.turn - b.turn;
@@ -771,12 +867,12 @@ function createDetailsList() {
 function gameOver() {
   if (gameStatus.includes("wins") || gameStatus.includes("Draw")) {
     gameEnd = true;
-    ZZ
+    ZZ;
     turnOfPlayer = "";
     if (gameStatus.includes(player)) {
-      console.log(player)
+      console.log(player);
     } else if (gameStatus.includes(opponent)) {
-      console.log(opponent)
+      console.log(opponent);
     } else {
       console.log("draw");
     }
