@@ -103,7 +103,7 @@ hr {
 }
 
 .button {
-    background-image: url(../../images/button.png);
+    background-image: url(../../images/button.PNG);
     background-position: center;
     background-repeat: no-repeat;
     background-size: cover;
@@ -195,7 +195,7 @@ a {
 .card .header {
     padding: 5px;
     width: 100%;
-    background-image: url(../../images/button.png);
+    background-image: url(../../images/button.PNG);
     background-position: center;
     background-repeat: no-repeat;
     background-size: cover;
