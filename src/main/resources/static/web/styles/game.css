@@ -265,7 +265,7 @@ legend {
 }
 
 button {
-  background: url("../../images/button.png") no-repeat scroll 0 0 transparent;
+  background: url(../../images/button.png) no-repeat scroll 0 0 transparent;
   padding: 8px 20px;
   cursor: pointer;
   border-radius: 10px;
