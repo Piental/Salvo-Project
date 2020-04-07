@@ -6,7 +6,7 @@ const gp = urlParams.get("gp");
 fetchData();
 
 async function fetchData() {
-  const res = await fetch("http://localhost:8080/api/game_view/" + gp);
+  const res = await fetch("https://game-salvo.herokuapp.com/api/game_view/" + gp);
   const data = await res.json();
   status = data.status;
   if (status == "ACCEPTED") {
@@ -28,7 +28,7 @@ function launchGame() {
 
 async function checkStatus() {
   // fetching data
-  const res = await fetch("http://localhost:8080/api/game_view/" + gp);
+  const res = await fetch("https://game-salvo.herokuapp.com/api/game_view/" + gp);
   const updatedData = await res.json();
   status = updatedData.status;
   if (status == "ACCEPTED") {
@@ -106,8 +106,7 @@ var playerSalvos = [];
 var currentSalvos = [];
 var opponentSalvos = [];
 var gameEnd = false;
-var playersShips = [
-  {
+var playersShips = [{
     type: "Submarine",
     locations: [],
     length: 3,
@@ -733,14 +732,14 @@ function sendShips() {
     Array.prototype.forEach.call(ships, (ship) => {
       ship.setAttribute("draggable", "false");
     });
-    fetch("http://localhost:8080/api/games/players/" + gp + "/ships", {
-      headers: {
-        "Content-Type": "application/json",
-      },
-      credentials: "include",
-      method: "POST",
-      body: JSON.stringify(data),
-    })
+    fetch("https://game-salvo.herokuapp.com/api/games/players/" + gp + "/ships", {
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+        method: "POST",
+        body: JSON.stringify(data),
+      })
       .then((response) => {
         console.log(response);
         if (response.status == 201) {
@@ -774,14 +773,14 @@ function sendSalvos() {
       };
       console.log(data);
       // switching off moving feature
-      fetch("http://localhost:8080/api/games/players/" + gp + "/salvos", {
-        headers: {
-          "Content-Type": "application/json",
-        },
-        credentials: "include",
-        method: "POST",
-        body: JSON.stringify(data),
-      })
+      fetch("https://game-salvo.herokuapp.com/api/games/players/" + gp + "/salvos", {
+          headers: {
+            "Content-Type": "application/json",
+          },
+          credentials: "include",
+          method: "POST",
+          body: JSON.stringify(data),
+        })
         .then((response) => {
           console.log(response);
           if (response.status == 201) return response.json();

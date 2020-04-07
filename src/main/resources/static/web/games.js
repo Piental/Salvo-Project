@@ -8,7 +8,7 @@ setInterval(function () {
 }, 2500);
 
 function createGames() {
-  fetch("http://localhost:8080/api/games")
+  fetch("https://game-salvo.herokuapp.com/api/games")
     .then(function (data) {
       return data.json();
     })
@@ -26,7 +26,7 @@ function createGames() {
 
 
 function createLeaderboard() {
-  fetch("http://localhost:8080/api/leaderboard")
+  fetch("https://game-salvo.herokuapp.com/api/leaderboard")
     .then(function (data) {
       return data.json();
     })
@@ -67,14 +67,14 @@ function createList() {
     //creating a links for the proper GP (player1 or player2)
     if (user.userName !== "Guest" && player1.id == user.id) {
       gamePlayer = games[i].gamePlayers[0].id;
-      a.href = "http://localhost:8080/web/game.html?gp=" + gamePlayer;
+      a.href = "https://game-salvo.herokuapp.com/web/game.html?gp=" + gamePlayer;
     } else if (
       user.userName !== "Guest" &&
       playersNumber == 2 &&
       player2.id == user.id
     ) {
       gamePlayer = games[i].gamePlayers[1].id;
-      a.href = "http://localhost:8080/web/game.html?gp=" + gamePlayer;
+      a.href = "https://game-salvo.herokuapp.com/web/game.html?gp=" + gamePlayer;
     } else {
       newGame.setAttribute("class", "card unlinked")
     }
